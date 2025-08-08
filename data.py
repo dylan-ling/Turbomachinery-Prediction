@@ -5,9 +5,12 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torch_geometric.data import Data
+# from torch_geometric.data import InMemoryDataset
 import trimesh
 
+# class Rotor37Dataset(InMemoryDataset):
 class Rotor37Dataset(Dataset):
+
     def __init__(self, root, split='train', num_points=1024):
         """
         Reads each Blade CSV + STL, normalizes flow fields & BCs, and returns per-point
@@ -15,6 +18,7 @@ class Rotor37Dataset(Dataset):
         """
         self.root       = root
         self.num_points = num_points
+        # self.split = split
 
         # 1) Load field_bc_stats.npz
         stats = np.load(os.path.join(root, 'field_bc_stats.npz'))
@@ -42,13 +46,22 @@ class Rotor37Dataset(Dataset):
 
         # 3) Read split list
         split_file = os.path.join(root, f'{split}_files.txt')
+        #split_file = os.path.join(root, f'{self.split}_files.txt')
 
         with open(split_file) as f:
             blades = [line.strip() for line in f if line.strip()]
 
         self.blades = [b for b in blades
                        if int(b.split('_')[-1]) in valid_ids]
+    
+        # super().__init__(root)
+        # data_path = os.path.join(root, f'{self.split}_data.pt')
+        # self.data, self.slices = torch.load(data_path)
 
+    # @property
+    # def processed_file_names(self):
+        # return [f'{self.split}_data.pt']
+    
     def __len__(self):
         return len(self.blades)
     def __getitem__(self, idx):
@@ -95,4 +108,9 @@ class Rotor37Dataset(Dataset):
             x   = torch.from_numpy(x).float(),        # [P,13]
             pos = torch.from_numpy(samp_pos).float(), # [P,3] for knn_graph
             y   = torch.from_numpy(samp_fields).float()  # [P,4]
+
+
+        # data, slices = self.collate(data_list)
+        # os.makedir(slelf.processed_dir, exist_ok=True)
+        # torch.save((data, slices), oos.path.join(self.processed_dir, f'{self.split}_files.txt')
         )
